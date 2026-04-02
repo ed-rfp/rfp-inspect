@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>RFP Inspect </title>
+<title>RFP Inspection App</title>
 <meta name="application-name" content="RFP Inspect">
 <meta name="description" content="Region Fire Protection Field Inspection App">
 <meta name="theme-color" content="#1a1a1a">
@@ -174,6 +174,29 @@
   .settings-save-btn { background: var(--red); color: white; border: none; border-radius: 5px; padding: 10px 20px; font-family: 'Oswald', sans-serif; font-size: 0.82rem; letter-spacing: 0.05em; text-transform: uppercase; cursor: pointer; margin-top: 4px; }
 
   @media (max-width: 500px) { .drawer-panel { max-width: 100%; } }
+
+  /* ── Customer picker ──────────────────────────────────────── */
+  .cust-picker-wrap { position: relative; }
+  .cust-search-row { display: flex; gap: 8px; align-items: center; }
+  .cust-search-row input { flex: 1; }
+  .btn-cust-new { font-family: 'Oswald', sans-serif; font-size: 0.78rem; letter-spacing: 0.05em; text-transform: uppercase; padding: 9px 14px; border-radius: 5px; border: none; background: var(--black); color: white; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+  .btn-cust-new:hover { background: var(--red); }
+  .cust-dropdown { position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: white; border: 1.5px solid var(--border); border-radius: 6px; box-shadow: 0 4px 16px rgba(0,0,0,0.12); z-index: 200; max-height: 220px; overflow-y: auto; }
+  .cust-option { padding: 10px 14px; cursor: pointer; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+  .cust-option:last-child { border-bottom: none; }
+  .cust-option:hover { background: #fff3f3; }
+  .cust-option .co-name { font-weight: 600; color: var(--black); }
+  .cust-option .co-addr { font-size: 0.78rem; color: var(--silver); margin-top: 1px; }
+  .cust-badge { display: inline-flex; align-items: center; gap: 8px; background: #d4edda; border: 1px solid var(--pass); border-radius: 5px; padding: 6px 12px; font-size: 0.85rem; color: var(--pass); font-weight: 600; margin-top: 8px; }
+  .cust-badge button { background: none; border: none; color: var(--pass); cursor: pointer; font-size: 1rem; line-height: 1; padding: 0 2px; }
+  .cust-badge button:hover { color: var(--fail); }
+
+  /* ── Customer modal ───────────────────────────────────────── */
+  #custModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 500; align-items: center; justify-content: center; padding: 20px; }
+  #custModal.open { display: flex; }
+  .cust-modal-box { background: white; border-radius: 12px; padding: 24px; width: 100%; max-width: 620px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto; }
+  .cust-modal-box h3 { font-family: 'Oswald', sans-serif; font-size: 1.1rem; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 16px; color: var(--black); }
+  .cust-modal-section { font-family: 'Oswald', sans-serif; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--red); padding-bottom: 5px; border-bottom: 2px solid var(--border); margin: 14px 0 10px; }
 </style>
 </head>
 <body>
@@ -228,6 +251,27 @@
 
 <!-- ══════════════════════════════════════════════════════════ TAB 1: JOB INFO -->
 <div class="tab-panel active" id="panel-jobinfo">
+  <!-- Customer Picker -->
+  <div class="card" id="custPickerCard">
+    <div class="card-header"><h2>&#x1F4C7; Customer</h2></div>
+    <div class="card-body">
+      <div class="cust-picker-wrap">
+        <div class="cust-search-row">
+          <input type="text" id="custSearchInput" placeholder="Search customers by name or address..." autocomplete="off" oninput="onCustSearch(this.value)">
+          <button class="btn-cust-new" onclick="openCustModal(null)">+ New Customer</button>
+        </div>
+        <div class="cust-dropdown" id="custDropdown" style="display:none"></div>
+        <div id="custSelectedBadge" style="display:none">
+          <div class="cust-badge">
+            <span id="custBadgeName"></span>
+            <button onclick="clearSelectedCustomer()" title="Clear customer">&#x2715;</button>
+            <button onclick="openCustModal(selectedCustomerId)" title="Edit customer" style="font-size:0.85rem">&#x270E;</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="card">
     <div class="card-header"><h2>Site Information</h2></div>
     <div class="card-body">
@@ -523,6 +567,55 @@
 </div>
 
 </main>
+
+<!-- CUSTOMER MODAL -->
+<div id="custModal">
+  <div class="cust-modal-box">
+    <h3 id="custModalTitle">New Customer</h3>
+    <div class="cust-modal-section">Basic Info</div>
+    <div class="form-grid cols-2">
+      <div class="field full"><label>Customer / Company Name *</label><input type="text" id="cm_name" placeholder="e.g. Lakeside Properties LLC"></div>
+      <div class="field full"><label>Street Address</label><input type="text" id="cm_address" placeholder="123 Main St"></div>
+      <div class="field"><label>City</label><input type="text" id="cm_city" placeholder="City"></div>
+      <div class="field"><label>State</label><input type="text" id="cm_state" placeholder="IN" style="max-width:100px"></div>
+      <div class="field"><label>ZIP</label><input type="text" id="cm_zip" placeholder="00000" style="max-width:120px"></div>
+      <div class="field"><label>Phone</label><input type="text" id="cm_phone" placeholder="(555) 000-0000"></div>
+      <div class="field"><label>Email</label><input type="text" id="cm_email" placeholder="email@company.com"></div>
+      <div class="field"><label>Primary Contact Name</label><input type="text" id="cm_contact" placeholder="Name"></div>
+    </div>
+    <div class="cust-modal-section">Alarm System Defaults</div>
+    <div class="form-grid cols-2">
+      <div class="field"><label>Panel Manufacturer</label><input type="text" id="cm_panelMfg" placeholder="e.g. Simplex, Notifier"></div>
+      <div class="field"><label>Panel Model</label><input type="text" id="cm_panelModel" placeholder="Model #"></div>
+      <div class="field"><label>Panel Serial #</label><input type="text" id="cm_panelSerial" placeholder="Serial #"></div>
+      <div class="field"><label>Firmware Version</label><input type="text" id="cm_firmware" placeholder="Version"></div>
+      <div class="field"><label>Number of Zones / Loops</label><input type="text" id="cm_numZones" placeholder="e.g. 4 Zones"></div>
+    </div>
+    <div class="cust-modal-section">Sprinkler System Defaults</div>
+    <div class="form-grid cols-2">
+      <div class="field"><label>System Type</label>
+        <select id="cm_spkSysType"><option value="">-- Select --</option><option>Wet Pipe</option><option>Dry Pipe</option></select>
+      </div>
+      <div class="field"><label>Sprinkler Make</label><input type="text" id="cm_spkMake" placeholder="e.g. Victaulic, Viking"></div>
+      <div class="field"><label>Year of Installation</label><input type="text" id="cm_spkYear" placeholder="YYYY"></div>
+    </div>
+    <div class="cust-modal-section">Hydrant Defaults</div>
+    <div class="form-grid cols-2">
+      <div class="field"><label>Hydrant ID / Number</label><input type="text" id="cm_hydrantId" placeholder="e.g. H-01"></div>
+      <div class="field"><label>Manufacturer</label><input type="text" id="cm_hydrantMfg" placeholder="e.g. Mueller, Clow"></div>
+      <div class="field"><label>Year Installed</label><input type="text" id="cm_hydrantYear" placeholder="YYYY"></div>
+      <div class="field"><label>Hydrant Type</label>
+        <select id="cm_hydrantType"><option value="">-- Select --</option><option>Wet Barrel</option><option>Dry Barrel</option></select>
+      </div>
+    </div>
+    <div class="cust-modal-section">Notes</div>
+    <div class="field"><textarea id="cm_notes" placeholder="Any notes about this customer or site..."></textarea></div>
+    <div class="btn-row" style="margin-top:18px">
+      <button class="btn btn-outline" onclick="closeCustModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveCustomer()">&#x2713; Save Customer</button>
+    </div>
+  </div>
+</div>
 
 <!-- FILENAME MODAL -->
 <div id="filenameModal">
@@ -1015,6 +1108,167 @@ function showToast(icon, msg) {
 
 
 // ══════════════════════════════════════════════════════════════════════════════
+// CUSTOMER MANAGEMENT
+// ══════════════════════════════════════════════════════════════════════════════
+var selectedCustomerId = null;
+var custSearchTimer = null;
+
+function onCustSearch(val) {
+  clearTimeout(custSearchTimer);
+  var dd = document.getElementById('custDropdown');
+  if (!val || val.length < 2) { dd.style.display = 'none'; return; }
+  custSearchTimer = setTimeout(function() {
+    supaFetch('GET', 'rfp_customers?or=(name.ilike.*' + encodeURIComponent(val) + '*,address.ilike.*' + encodeURIComponent(val) + '*)&order=name.asc&limit=10')
+      .then(function(results) { renderCustDropdown(results || []); })
+      .catch(function() { dd.style.display = 'none'; });
+  }, 300);
+}
+
+function renderCustDropdown(customers) {
+  var dd = document.getElementById('custDropdown');
+  if (!customers.length) { dd.style.display = 'none'; return; }
+  dd.innerHTML = '';
+  customers.forEach(function(c) {
+    var div = document.createElement('div');
+    div.className = 'cust-option';
+    div.innerHTML = '<div class="co-name">' + (c.name||'') + '</div><div class="co-addr">' + [c.address, c.city, c.state].filter(Boolean).join(', ') + '</div>';
+    div.addEventListener('click', function() { selectCustomer(c); });
+    dd.appendChild(div);
+  });
+  dd.style.display = 'block';
+}
+
+function selectCustomer(c) {
+  selectedCustomerId = c.id;
+  document.getElementById('custSearchInput').value = '';
+  document.getElementById('custDropdown').style.display = 'none';
+  document.getElementById('custBadgeName').textContent = c.name;
+  document.getElementById('custSelectedBadge').style.display = 'block';
+  // Pre-fill job info fields
+  if (c.name)         document.getElementById('custName').value       = c.name;
+  if (c.phone)        document.getElementById('custPhone').value      = c.phone;
+  if (c.email)        document.getElementById('custEmail').value      = c.email;
+  if (c.contact_name) document.getElementById('onSiteContact').value  = c.contact_name;
+  if (c.address)      document.getElementById('address').value        = c.address;
+  if (c.city)         document.getElementById('city').value           = c.city;
+  if (c.state)        document.getElementById('state').value          = c.state;
+  if (c.zip)          document.getElementById('zip').value            = c.zip;
+  // Pre-fill alarm fields
+  if (c.panel_mfg)    document.getElementById('panelMfg').value       = c.panel_mfg;
+  if (c.panel_model)  document.getElementById('panelModel').value     = c.panel_model;
+  if (c.panel_serial) document.getElementById('panelSerial').value    = c.panel_serial;
+  if (c.firmware)     document.getElementById('firmware').value       = c.firmware;
+  if (c.num_zones)    document.getElementById('numZones').value       = c.num_zones;
+  // Pre-fill sprinkler fields
+  if (c.spk_sys_type) document.getElementById('spkSysType').value     = c.spk_sys_type;
+  if (c.spk_make)     document.getElementById('spkMake').value        = c.spk_make;
+  if (c.spk_year)     document.getElementById('spkYear').value        = c.spk_year;
+  // Pre-fill hydrant fields
+  if (c.hydrant_id)   document.getElementById('hydrantId').value      = c.hydrant_id;
+  if (c.hydrant_mfg)  document.getElementById('hydrantMfg').value     = c.hydrantMfg || c.hydrant_mfg;
+  if (c.hydrant_year) document.getElementById('hydrantYear').value    = c.hydrant_year;
+  if (c.hydrant_type) document.getElementById('hydrantType').value    = c.hydrant_type;
+  showToast('✅', 'Customer loaded — form pre-filled!');
+}
+
+function clearSelectedCustomer() {
+  selectedCustomerId = null;
+  document.getElementById('custSelectedBadge').style.display = 'none';
+  document.getElementById('custSearchInput').value = '';
+}
+
+function openCustModal(id) {
+  document.getElementById('custDropdown').style.display = 'none';
+  // Clear form
+  ['cm_name','cm_address','cm_city','cm_state','cm_zip','cm_phone','cm_email','cm_contact',
+   'cm_panelMfg','cm_panelModel','cm_panelSerial','cm_firmware','cm_numZones',
+   'cm_spkMake','cm_spkYear','cm_hydrantId','cm_hydrantMfg','cm_hydrantYear','cm_notes'].forEach(function(f) {
+    var el = document.getElementById(f); if (el) el.value = '';
+  });
+  ['cm_spkSysType','cm_hydrantType'].forEach(function(f) {
+    var el = document.getElementById(f); if (el) el.value = '';
+  });
+  document.getElementById('custModal').dataset.editId = id || '';
+  document.getElementById('custModalTitle').textContent = id ? 'Edit Customer' : 'New Customer';
+  if (id) {
+    supaFetch('GET', 'rfp_customers?id=eq.' + id).then(function(rows) {
+      if (!rows || !rows[0]) return;
+      var c = rows[0];
+      var map = {
+        cm_name: c.name, cm_address: c.address, cm_city: c.city, cm_state: c.state,
+        cm_zip: c.zip, cm_phone: c.phone, cm_email: c.email, cm_contact: c.contact_name,
+        cm_panelMfg: c.panel_mfg, cm_panelModel: c.panel_model, cm_panelSerial: c.panel_serial,
+        cm_firmware: c.firmware, cm_numZones: c.num_zones, cm_spkSysType: c.spk_sys_type,
+        cm_spkMake: c.spk_make, cm_spkYear: c.spk_year, cm_hydrantId: c.hydrant_id,
+        cm_hydrantMfg: c.hydrant_mfg, cm_hydrantYear: c.hydrant_year,
+        cm_hydrantType: c.hydrant_type, cm_notes: c.notes
+      };
+      Object.keys(map).forEach(function(k) {
+        var el = document.getElementById(k); if (el && map[k]) el.value = map[k];
+      });
+    });
+  }
+  document.getElementById('custModal').classList.add('open');
+}
+
+function closeCustModal() {
+  document.getElementById('custModal').classList.remove('open');
+}
+
+function saveCustomer() {
+  var name = document.getElementById('cm_name').value.trim();
+  if (!name) { alert('Customer name is required.'); return; }
+  var payload = {
+    name: name,
+    address:       document.getElementById('cm_address').value.trim(),
+    city:          document.getElementById('cm_city').value.trim(),
+    state:         document.getElementById('cm_state').value.trim(),
+    zip:           document.getElementById('cm_zip').value.trim(),
+    phone:         document.getElementById('cm_phone').value.trim(),
+    email:         document.getElementById('cm_email').value.trim(),
+    contact_name:  document.getElementById('cm_contact').value.trim(),
+    panel_mfg:     document.getElementById('cm_panelMfg').value.trim(),
+    panel_model:   document.getElementById('cm_panelModel').value.trim(),
+    panel_serial:  document.getElementById('cm_panelSerial').value.trim(),
+    firmware:      document.getElementById('cm_firmware').value.trim(),
+    num_zones:     document.getElementById('cm_numZones').value.trim(),
+    spk_sys_type:  document.getElementById('cm_spkSysType').value,
+    spk_make:      document.getElementById('cm_spkMake').value.trim(),
+    spk_year:      document.getElementById('cm_spkYear').value.trim(),
+    hydrant_id:    document.getElementById('cm_hydrantId').value.trim(),
+    hydrant_mfg:   document.getElementById('cm_hydrantMfg').value.trim(),
+    hydrant_year:  document.getElementById('cm_hydrantYear').value.trim(),
+    hydrant_type:  document.getElementById('cm_hydrantType').value,
+    notes:         document.getElementById('cm_notes').value.trim(),
+    updated_at:    new Date().toISOString()
+  };
+  var editId = document.getElementById('custModal').dataset.editId;
+  var promise = editId
+    ? supaFetch('PATCH', 'rfp_customers?id=eq.' + editId, payload)
+    : supaFetch('POST',  'rfp_customers', payload);
+  promise.then(function(result) {
+    closeCustModal();
+    var saved = (editId ? result && result[0] : result && result[0]) || payload;
+    if (!editId && result && result[0]) {
+      selectCustomer(result[0]);
+    } else if (editId) {
+      // refresh badge name
+      document.getElementById('custBadgeName').textContent = name;
+      showToast('✅', 'Customer updated!');
+    } else {
+      showToast('✅', 'Customer saved!');
+    }
+  }).catch(function(e) { alert('Error saving customer: ' + e.message); });
+}
+
+// Close dropdown on outside click
+document.addEventListener('click', function(e) {
+  var dd = document.getElementById('custDropdown');
+  var wrap = document.getElementById('custPickerCard');
+  if (dd && wrap && !wrap.contains(e.target)) dd.style.display = 'none';
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
 // SUPABASE INTEGRATION - Promise-based for iOS/Safari compatibility
 // ══════════════════════════════════════════════════════════════════════════════
 var SUPA_URL = 'https://lksyzbjvqnhlovvycart.supabase.co';
@@ -1237,6 +1491,7 @@ function saveDraft() {
   var facility = data.facilityName || 'Unnamed Job';
   var payload = {
     report_id: reportId,
+    customer_id: selectedCustomerId || null,
     facility: facility,
     address: (data.address||'') + (data.city?' '+data.city:'') + (data.state?' '+data.state:''),
     insp_date: data.inspDate || null,
@@ -1273,6 +1528,24 @@ function saveDraft() {
 }
 
 // ── Mark complete ─────────────────────────────────────────────────────────────
+function uploadPdfToStorage(filename, htmlContent, jobId) {
+  var blob = new Blob([htmlContent], { type: 'text/html' });
+  return new Promise(function(resolve, reject) {
+    var xhr = new XMLHttpRequest();
+    var path = jobId + '/' + filename;
+    xhr.open('POST', SUPA_URL + '/storage/v1/object/rfp-reports/' + path, true);
+    xhr.setRequestHeader('apikey', SUPA_KEY);
+    xhr.setRequestHeader('Authorization', 'Bearer ' + SUPA_KEY);
+    xhr.setRequestHeader('Content-Type', 'text/html');
+    xhr.onload = function() {
+      if (xhr.status >= 200 && xhr.status < 300) resolve(path);
+      else reject(new Error('Upload failed: ' + xhr.status));
+    };
+    xhr.onerror = function() { reject(new Error('Network error uploading PDF')); };
+    xhr.send(blob);
+  });
+}
+
 function markComplete() {
   var data = collectFormData();
   var completePayload = {
@@ -1282,11 +1555,11 @@ function markComplete() {
   };
 
   if (!isOnline()) {
-    // Queue complete offline — store with status:complete
     if (!currentLocalId) currentLocalId = 'local_' + Date.now();
     var facility = data.facilityName || 'Unnamed Job';
     addToOfflineQueue({ local_id: currentLocalId, job_id: currentJobId || null, payload: Object.assign({
       report_id: reportId, facility: facility,
+      customer_id: selectedCustomerId || null,
       address: (data.address||''),
       insp_date: data.inspDate || null,
       tech_name: data.techName || ''
@@ -1300,6 +1573,14 @@ function markComplete() {
     supaFetch('PATCH', 'rfp_jobs?id=eq.' + id, completePayload).then(function() {
       setDbStatus('\u2713 Marked Complete', 'synced');
       setTimeout(function() { setDbStatus(''); }, 3000);
+      // Upload all three PDF reports to storage
+      var alarmHtml    = buildAlarmReport();
+      var spkHtml      = buildSprinklerReport();
+      var hydHtml      = buildHydrantReport();
+      var base = reportId + '-' + (data.facilityName||'Job').replace(/[^a-zA-Z0-9]/g,'-');
+      uploadPdfToStorage(base + '-Alarm.html',     alarmHtml,  id).catch(function(){});
+      uploadPdfToStorage(base + '-Sprinkler.html', spkHtml,    id).catch(function(){});
+      uploadPdfToStorage(base + '-Hydrant.html',   hydHtml,    id).catch(function(){});
     }).catch(function(e) {
       setDbStatus('\u2717 Error', 'error');
       alert('Error: ' + e.message);
@@ -1311,6 +1592,7 @@ function markComplete() {
     var facility = data.facilityName || 'Unnamed Job';
     var payload = {
       report_id: reportId, facility: facility,
+      customer_id: selectedCustomerId || null,
       address: (data.address||''),
       insp_date: data.inspDate || null,
       tech_name: data.techName || '',
@@ -1370,6 +1652,18 @@ function loadJob(id) {
     if (!jobs || !jobs[0]) return;
     currentJobId = jobs[0].id;
     restoreFormData(jobs[0].form_data);
+    // Restore customer badge if job has a customer
+    if (jobs[0].customer_id) {
+      supaFetch('GET', 'rfp_customers?id=eq.' + jobs[0].customer_id).then(function(custs) {
+        if (custs && custs[0]) {
+          selectedCustomerId = custs[0].id;
+          document.getElementById('custBadgeName').textContent = custs[0].name;
+          document.getElementById('custSelectedBadge').style.display = 'block';
+        }
+      }).catch(function(){});
+    } else {
+      clearSelectedCustomer();
+    }
     closeDrawer();
     setDbStatus('\u2713 Job loaded', 'synced');
     setTimeout(function() { setDbStatus(''); }, 3000);
@@ -1413,6 +1707,9 @@ function saveSettings() {
 
 function newJob() {
   currentJobId = null;
+  selectedCustomerId = null;
+  document.getElementById('custSelectedBadge').style.display = 'none';
+  document.getElementById('custSearchInput').value = '';
   document.querySelectorAll('input[type=text],input[type=date],input[type=time],input[type=number],select,textarea').forEach(function(el) {
     if (el.id && ['techSigCanvas','custSigCanvas'].indexOf(el.id) < 0) el.value = '';
   });
@@ -1468,6 +1765,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
   document.getElementById('filenameModal').addEventListener('click', function(e) {
     if (e.target === this) closeFilenameModal();
+  });
+  document.getElementById('custModal').addEventListener('click', function(e) {
+    if (e.target === this) closeCustModal();
   });
   document.getElementById('reportFilename').addEventListener('keydown', function(e) {
     if (e.key === 'Enter') confirmAndDownload();
