@@ -1157,15 +1157,19 @@ function confirmAndDownload() {
   var html = currentReportType === 'alarm' ? buildAlarmReport() :
              currentReportType === 'sprinkler' ? buildSprinklerReport() : buildHydrantReport();
 
-  // Store report in sessionStorage and open viewer page
-  try {
-    sessionStorage.setItem('rfp_report_html', html);
-    sessionStorage.setItem('rfp_report_name', filename);
-  } catch(e) {}
-
-  // Open as data URI in same window — works in PWA
-  var encoded = 'data:text/html;charset=utf-8,' + encodeURIComponent(html);
-  window.location.href = encoded;
+  // Write to a new window via document.write — only reliable cross-platform method
+  var win = window.open('', '_blank');
+  if (win) {
+    win.document.write(html);
+    win.document.close();
+    showToast('📄', 'Tap Share → Print → Save as PDF');
+  } else {
+    // Fallback: navigate current tab
+    document.open();
+    document.write(html);
+    document.close();
+    showToast('📄', 'Tap Share → Print → Save as PDF');
+  }
 }
 
 function showToast(icon, msg) {
