@@ -1354,11 +1354,11 @@ function sendReportEmail() {
   btn.disabled = true;
   btn.textContent = 'Sending...';
 
-  fetch('https://api.resend.com/emails', {
+  fetch('https://lksyzbjvqnhlovvycart.supabase.co/functions/v1/send-email', {
     method: 'POST',
     headers: {
-      'Authorization': 'Bearer ' + RESEND_KEY,
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + SUPA_KEY
     },
     body: JSON.stringify({
       from: 'RFP Inspect <onboarding@resend.dev>',
