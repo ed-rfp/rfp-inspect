@@ -1357,8 +1357,7 @@ function sendReportEmail() {
   fetch('https://lksyzbjvqnhlovvycart.supabase.co/functions/v1/send-email', {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer ' + SUPA_KEY
+      'Content-Type': 'application/json'
     },
     body: JSON.stringify({
       from: 'RFP Inspect <onboarding@resend.dev>',
