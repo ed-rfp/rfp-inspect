@@ -1156,18 +1156,16 @@ function confirmAndDownload() {
   closeFilenameModal();
   var html = currentReportType === 'alarm' ? buildAlarmReport() :
              currentReportType === 'sprinkler' ? buildSprinklerReport() : buildHydrantReport();
-  var printHtml = html.replace('</body>', '<script>window.onload=function(){window.print();};<\/script></body>');
-  var blob = new Blob([printHtml], { type: 'text/html' });
-  var url = URL.createObjectURL(blob);
-  var a = document.createElement('a');
-  a.href = url;
-  a.target = '_blank';
-  a.rel = 'noopener';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  setTimeout(function() { URL.revokeObjectURL(url); }, 10000);
-  showToast('📄', 'Tap Share → Print → Save as PDF');
+
+  // Store report in sessionStorage and open viewer page
+  try {
+    sessionStorage.setItem('rfp_report_html', html);
+    sessionStorage.setItem('rfp_report_name', filename);
+  } catch(e) {}
+
+  // Open as data URI in same window — works in PWA
+  var encoded = 'data:text/html;charset=utf-8,' + encodeURIComponent(html);
+  window.location.href = encoded;
 }
 
 function showToast(icon, msg) {
