@@ -176,12 +176,13 @@
   @media (max-width: 500px) { .drawer-panel { max-width: 100%; } }
 
   /* ── Customer picker ──────────────────────────────────────── */
-  .cust-picker-wrap { position: relative; }
+  .cust-picker-wrap { }
+  #custPickerCard, #custPickerCard .card-body { overflow: visible !important; }
   .cust-search-row { display: flex; gap: 8px; align-items: center; }
   .cust-search-row input { flex: 1; }
   .btn-cust-new { font-family: 'Oswald', sans-serif; font-size: 0.78rem; letter-spacing: 0.05em; text-transform: uppercase; padding: 9px 14px; border-radius: 5px; border: none; background: var(--black); color: white; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
   .btn-cust-new:hover { background: var(--red); }
-  .cust-dropdown { position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: white; border: 1.5px solid var(--border); border-radius: 6px; box-shadow: 0 4px 16px rgba(0,0,0,0.12); z-index: 200; max-height: 220px; overflow-y: auto; }
+  .cust-dropdown { position: fixed; background: white; border: 1.5px solid var(--red); border-radius: 6px; box-shadow: 0 6px 24px rgba(0,0,0,0.18); z-index: 9999; max-height: 260px; overflow-y: auto; }
   .cust-option { padding: 10px 14px; cursor: pointer; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
   .cust-option:last-child { border-bottom: none; }
   .cust-option:hover { background: #fff3f3; }
@@ -197,6 +198,28 @@
   .cust-modal-box { background: white; border-radius: 12px; padding: 24px; width: 100%; max-width: 620px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto; }
   .cust-modal-box h3 { font-family: 'Oswald', sans-serif; font-size: 1.1rem; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 16px; color: var(--black); }
   .cust-modal-section { font-family: 'Oswald', sans-serif; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--red); padding-bottom: 5px; border-bottom: 2px solid var(--border); margin: 14px 0 10px; }
+
+  /* ── Photos ───────────────────────────────────────────────── */
+  .photo-section { margin-top: 4px; }
+  .photo-grid { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+  .photo-thumb { position: relative; width: 90px; height: 90px; border-radius: 6px; overflow: hidden; border: 1px solid var(--border); background: var(--light); flex-shrink: 0; }
+  .photo-thumb img { width: 100%; height: 100%; object-fit: cover; cursor: pointer; }
+  .photo-thumb .del-photo { position: absolute; top: 3px; right: 3px; background: rgba(0,0,0,0.6); color: white; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 0.7rem; cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1; }
+  .photo-thumb .del-photo:hover { background: var(--red); }
+  .photo-uploading { width: 90px; height: 90px; border-radius: 6px; border: 1px dashed var(--border); background: var(--light); display: flex; align-items: center; justify-content: center; font-size: 0.72rem; color: var(--silver); flex-shrink: 0; }
+  .btn-add-photo { display: inline-flex; align-items: center; gap: 7px; font-family: 'Oswald', sans-serif; font-size: 0.78rem; letter-spacing: 0.05em; text-transform: uppercase; padding: 8px 14px; border-radius: 5px; border: 1.5px dashed var(--border); background: transparent; color: var(--steel); cursor: pointer; transition: all 0.15s; }
+  .btn-add-photo:hover { border-color: var(--red); color: var(--red); }
+
+  /* ── Photo lightbox ───────────────────────────────────────── */
+  #photoLightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 600; align-items: center; justify-content: center; }
+  #photoLightbox.open { display: flex; }
+  #photoLightbox img { max-width: 95vw; max-height: 90vh; border-radius: 8px; object-fit: contain; }
+  #photoLightbox .lb-close { position: absolute; top: 16px; right: 20px; background: none; border: none; color: white; font-size: 2rem; cursor: pointer; line-height: 1; }
+
+  /* ── Email button ─────────────────────────────────────────── */
+  .btn-email { background: #2563eb; color: white; }
+  .btn-email:hover { background: #1d4ed8; }
+  .btn-email:disabled { background: var(--silver); cursor: not-allowed; }
 </style>
 </head>
 <body>
@@ -255,18 +278,17 @@
   <div class="card" id="custPickerCard">
     <div class="card-header"><h2>&#x1F4C7; Customer</h2></div>
     <div class="card-body">
-      <div class="cust-picker-wrap">
-        <div class="cust-search-row">
-          <input type="text" id="custSearchInput" placeholder="Search customers by name or address..." autocomplete="off" oninput="onCustSearch(this.value)">
-          <button class="btn-cust-new" onclick="openCustModal(null)">+ New Customer</button>
-        </div>
-        <div class="cust-dropdown" id="custDropdown" style="display:none"></div>
-        <div id="custSelectedBadge" style="display:none">
-          <div class="cust-badge">
-            <span id="custBadgeName"></span>
-            <button onclick="clearSelectedCustomer()" title="Clear customer">&#x2715;</button>
-            <button onclick="openCustModal(selectedCustomerId)" title="Edit customer" style="font-size:0.85rem">&#x270E;</button>
-          </div>
+      <div class="cust-search-row">
+        <input type="text" id="custSearchInput" placeholder="Search by name..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" oninput="onCustSearch(this.value)" onkeyup="onCustSearch(this.value)">
+        <button class="btn-cust-new" onclick="onCustSearch(document.getElementById('custSearchInput').value)" style="background:var(--steel)">&#x1F50D;</button>
+        <button class="btn-cust-new" onclick="openCustModal(null)">+ New</button>
+      </div>
+      <div id="custDropdown" style="display:none; margin-top:8px; border:2px solid var(--red); border-radius:6px; background:white;"></div>
+      <div id="custSelectedBadge" style="display:none; margin-top:8px;">
+        <div class="cust-badge">
+          <span id="custBadgeName"></span>
+          <button onclick="clearSelectedCustomer()" title="Clear customer">&#x2715;</button>
+          <button onclick="openCustModal(selectedCustomerId)" title="Edit customer" style="font-size:0.85rem">&#x270E;</button>
         </div>
       </div>
     </div>
@@ -367,6 +389,17 @@
     <div class="card-body"><div class="field"><label>Deficiencies / Corrective Actions Required</label><textarea id="alarmNotes" placeholder="Note any deficiencies, items requiring correction, or follow-up..."></textarea></div></div>
   </div>
 
+  <div class="card">
+    <div class="card-header"><h2>&#x1F4F7; Photos</h2><span class="badge" id="alarmPhotoCount">0</span></div>
+    <div class="card-body">
+      <div class="photo-section">
+        <button class="btn-add-photo" onclick="triggerPhotoUpload('alarm')">&#x1F4F7; Add Photo</button>
+        <input type="file" id="photoInput-alarm" accept="image/*" capture="environment" style="display:none" multiple onchange="handlePhotoUpload(this,'alarm')">
+        <div class="photo-grid" id="photoGrid-alarm"></div>
+      </div>
+    </div>
+  </div>
+
   <div class="next-btn-row">
     <button class="btn btn-outline btn-next" id="back-to-jobinfo">&larr; Job Info</button>
     <button class="btn btn-primary btn-next" id="next-to-sprinkler">Sprinkler &rarr;</button>
@@ -439,6 +472,17 @@
     </div>
   </div>
 
+  <div class="card">
+    <div class="card-header"><h2>&#x1F4F7; Photos</h2><span class="badge" id="spkPhotoCount">0</span></div>
+    <div class="card-body">
+      <div class="photo-section">
+        <button class="btn-add-photo" onclick="triggerPhotoUpload('sprinkler')">&#x1F4F7; Add Photo</button>
+        <input type="file" id="photoInput-sprinkler" accept="image/*" capture="environment" style="display:none" multiple onchange="handlePhotoUpload(this,'sprinkler')">
+        <div class="photo-grid" id="photoGrid-sprinkler"></div>
+      </div>
+    </div>
+  </div>
+
   <div class="next-btn-row">
     <button class="btn btn-outline btn-next" id="back-to-alarm">&larr; Fire Alarm</button>
     <button class="btn btn-primary btn-next" id="next-to-hydrant">Hydrant &rarr;</button>
@@ -497,6 +541,17 @@
         <div class="field"><label>Hydrant Restored to Service?</label><div class="toggle-group" data-field="hydRestored"><button class="toggle-btn" onclick="setToggle(this,'yes')">&#x2714; Yes</button><button class="toggle-btn" onclick="setToggle(this,'no')">&#x2716; No</button></div></div>
       </div>
       <div class="field" style="margin-top:16px"><label>Hydrant Notes / Deficiencies</label><textarea id="hydNotes" placeholder="Note any deficiencies, damage, required repairs..."></textarea></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><h2>&#x1F4F7; Photos</h2><span class="badge" id="hydPhotoCount">0</span></div>
+    <div class="card-body">
+      <div class="photo-section">
+        <button class="btn-add-photo" onclick="triggerPhotoUpload('hydrant')">&#x1F4F7; Add Photo</button>
+        <input type="file" id="photoInput-hydrant" accept="image/*" capture="environment" style="display:none" multiple onchange="handlePhotoUpload(this,'hydrant')">
+        <div class="photo-grid" id="photoGrid-hydrant"></div>
+      </div>
     </div>
   </div>
 
@@ -562,11 +617,20 @@
         <button class="btn btn-primary" id="btn-save-sprinkler">&#x1F4A7; Sprinkler Report</button>
         <button class="btn btn-primary" id="btn-save-hydrant">&#x1F9EF; Hydrant Report</button>
       </div>
+      <div class="btn-row" style="margin-top:12px">
+        <button class="btn btn-email" id="btn-send-email" onclick="sendReportEmail()">&#x2709; Email Reports to Customer</button>
+      </div>
     </div>
   </div>
 </div>
 
 </main>
+
+<!-- PHOTO LIGHTBOX -->
+<div id="photoLightbox">
+  <button class="lb-close" onclick="closeLightbox()">&#x2715;</button>
+  <img id="lightboxImg" src="" alt="Photo">
+</div>
 
 <!-- CUSTOMER MODAL -->
 <div id="custModal">
@@ -769,7 +833,7 @@ function generateSummary() {
   var fullAddr = [addr, [city, state, zip].filter(Boolean).join(', ')].filter(Boolean).join(', ');
   var dt = document.getElementById('inspDate').value || '--';
   var tn = document.getElementById('techName').value || '--';
-  var ti = document.getElementById('techId').value || '--';
+  var ti = '';
   document.getElementById('summaryContent').innerHTML =
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px">' +
     '<div><div class="section-title">Site</div><p style="font-size:0.9rem;line-height:1.7"><strong>' + fn + '</strong><br>' + fullAddr + '<br><strong>Date:</strong> ' + dt + '</p></div>' +
@@ -797,7 +861,7 @@ function getCommonData() {
     custName:    document.getElementById('custName').value || '',
     custPhone:   document.getElementById('custPhone').value || '',
     techName:    document.getElementById('techName').value || '',
-    techId:      document.getElementById('techId').value || '',
+    techId:      '',
     techPrint:   document.getElementById('techPrint').value || '',
     custPrint:   document.getElementById('custPrint').value || '',
     custTitle:   document.getElementById('custTitle').value || '',
@@ -967,7 +1031,7 @@ function buildSprinklerReport() {
   var spkInspType = document.getElementById('spkInspType').value || '';
   var spkMake     = document.getElementById('spkMake').value || '';
   var spkYear     = document.getElementById('spkYear').value || '';
-  var spkHeads    = document.getElementById('spkHeads').value || '';
+  var spkHeads    = '';
   var staticP     = document.getElementById('staticPressure').value || '';
   var residualP   = document.getElementById('residualPressure').value || '';
   var airP        = document.getElementById('airPressure').value || '';
@@ -1108,6 +1172,208 @@ function showToast(icon, msg) {
 
 
 // ══════════════════════════════════════════════════════════════════════════════
+// PHOTO MANAGEMENT
+// ══════════════════════════════════════════════════════════════════════════════
+var jobPhotos = { alarm: [], sprinkler: [], hydrant: [] };
+
+function triggerPhotoUpload(section) {
+  document.getElementById('photoInput-' + section).click();
+}
+
+function handlePhotoUpload(input, section) {
+  var files = Array.from(input.files);
+  if (!files.length) return;
+  files.forEach(function(file) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var dataUrl = e.target.result;
+      // Add placeholder
+      var placeholder = addPhotoPlaceholder(section);
+      // If job exists in Supabase, upload there; otherwise store locally
+      if (currentJobId) {
+        uploadPhotoToStorage(file, section).then(function(path) {
+          placeholder.remove();
+          jobPhotos[section].push({ path: path, url: dataUrl });
+          renderPhotoGrid(section);
+        }).catch(function() {
+          // Fall back to local
+          placeholder.remove();
+          jobPhotos[section].push({ dataUrl: dataUrl });
+          renderPhotoGrid(section);
+        });
+      } else {
+        placeholder.remove();
+        jobPhotos[section].push({ dataUrl: dataUrl });
+        renderPhotoGrid(section);
+      }
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value = '';
+}
+
+function addPhotoPlaceholder(section) {
+  var grid = document.getElementById('photoGrid-' + section);
+  var div = document.createElement('div');
+  div.className = 'photo-uploading';
+  div.textContent = 'Uploading...';
+  grid.appendChild(div);
+  return div;
+}
+
+function uploadPhotoToStorage(file, section) {
+  return new Promise(function(resolve, reject) {
+    var ext = file.name.split('.').pop() || 'jpg';
+    var path = currentJobId + '/' + section + '/' + Date.now() + '.' + ext;
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', SUPA_URL + '/storage/v1/object/rfp-reports/' + path, true);
+    xhr.setRequestHeader('apikey', SUPA_KEY);
+    xhr.setRequestHeader('Authorization', 'Bearer ' + SUPA_KEY);
+    xhr.setRequestHeader('Content-Type', file.type || 'image/jpeg');
+    xhr.onload = function() {
+      if (xhr.status >= 200 && xhr.status < 300) resolve(path);
+      else reject(new Error('Upload failed'));
+    };
+    xhr.onerror = function() { reject(new Error('Network error')); };
+    xhr.send(file);
+  });
+}
+
+function renderPhotoGrid(section) {
+  var grid = document.getElementById('photoGrid-' + section);
+  var badge = document.getElementById(section === 'alarm' ? 'alarmPhotoCount' : section === 'sprinkler' ? 'spkPhotoCount' : 'hydPhotoCount');
+  var photos = jobPhotos[section];
+  grid.innerHTML = '';
+  photos.forEach(function(p, i) {
+    var div = document.createElement('div');
+    div.className = 'photo-thumb';
+    var img = document.createElement('img');
+    img.src = p.dataUrl || p.url || '';
+    img.alt = 'Photo ' + (i + 1);
+    img.addEventListener('click', function() { openLightbox(img.src); });
+    var del = document.createElement('button');
+    del.className = 'del-photo';
+    del.innerHTML = '&#x2715;';
+    del.addEventListener('click', function(e) { e.stopPropagation(); deletePhoto(section, i); });
+    div.appendChild(img);
+    div.appendChild(del);
+    grid.appendChild(div);
+  });
+  if (badge) badge.textContent = photos.length;
+}
+
+function deletePhoto(section, index) {
+  if (!confirm('Delete this photo?')) return;
+  jobPhotos[section].splice(index, 1);
+  renderPhotoGrid(section);
+}
+
+function openLightbox(src) {
+  document.getElementById('lightboxImg').src = src;
+  document.getElementById('photoLightbox').classList.add('open');
+}
+function closeLightbox() {
+  document.getElementById('photoLightbox').classList.remove('open');
+}
+
+function clearAllPhotos() {
+  jobPhotos = { alarm: [], sprinkler: [], hydrant: [] };
+  ['alarm','sprinkler','hydrant'].forEach(function(s) { renderPhotoGrid(s); });
+}
+
+function restorePhotos(photos) {
+  if (!photos) return;
+  jobPhotos = { alarm: photos.alarm || [], sprinkler: photos.sprinkler || [], hydrant: photos.hydrant || [] };
+  ['alarm','sprinkler','hydrant'].forEach(function(s) {
+    // For stored paths, generate signed URLs
+    var needsSigned = jobPhotos[s].filter(function(p) { return p.path && !p.url; });
+    if (needsSigned.length) {
+      var paths = needsSigned.map(function(p) { return p.path; });
+      supaFetch('POST', '../storage/v1/object/sign/rfp-reports', { expiresIn: 3600, paths: paths })
+        .then(function(signed) {
+          if (!signed) return;
+          signed.forEach(function(s2) {
+            var photo = jobPhotos[s].find(function(p) { return p.path === s2.path; });
+            if (photo) photo.url = SUPA_URL + '/storage/v1' + s2.signedURL;
+          });
+          renderPhotoGrid(s);
+        }).catch(function() { renderPhotoGrid(s); });
+    } else {
+      renderPhotoGrid(s);
+    }
+  });
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// EMAIL REPORTS
+// ══════════════════════════════════════════════════════════════════════════════
+var RESEND_KEY = 're_4QXyeiXS_DmXBD1wdhsorYcxc4Ktoyqzt';
+var RFP_EMAIL  = 'ed@regionfire.com';
+
+function sendReportEmail() {
+  var btn = document.getElementById('btn-send-email');
+  var custEmail = document.getElementById('custEmail').value.trim();
+  var facility  = document.getElementById('facilityName').value || 'Inspection';
+  var techName  = document.getElementById('techName').value || 'Technician';
+  var inspDate  = document.getElementById('inspDate').value || '';
+
+  var toList = [RFP_EMAIL];
+  if (custEmail) toList.push(custEmail);
+
+  // Build report attachments — only include tabs that have data
+  var attachments = [];
+  var alarmHtml = buildAlarmReport();
+  var spkHtml   = buildSprinklerReport();
+  var hydHtml   = buildHydrantReport();
+
+  function toBase64(str) {
+    return btoa(unescape(encodeURIComponent(str)));
+  }
+
+  attachments.push({ filename: reportId + '-FireAlarm.html',   content: toBase64(alarmHtml),  type: 'text/html' });
+  attachments.push({ filename: reportId + '-Sprinkler.html',   content: toBase64(spkHtml),    type: 'text/html' });
+  attachments.push({ filename: reportId + '-Hydrant.html',     content: toBase64(hydHtml),    type: 'text/html' });
+
+  var subject = 'RFP Inspection Report — ' + facility + (inspDate ? ' — ' + inspDate : '');
+  var bodyHtml = '<p>Please find attached the inspection reports for <strong>' + facility + '</strong>.</p>' +
+    '<p><strong>Report ID:</strong> ' + reportId + '<br>' +
+    '<strong>Date:</strong> ' + (inspDate || '--') + '<br>' +
+    '<strong>Technician:</strong> ' + techName + '</p>' +
+    '<p>Reports are attached as HTML files — open in any browser to view or print.</p>' +
+    '<p style="color:#888;font-size:12px">Region Fire Protection &nbsp;|&nbsp; regionfire.com</p>';
+
+  btn.disabled = true;
+  btn.textContent = 'Sending...';
+
+  fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer ' + RESEND_KEY,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      from: 'RFP Inspect <onboarding@resend.dev>',
+      to: toList,
+      subject: subject,
+      html: bodyHtml,
+      attachments: attachments
+    })
+  }).then(function(res) { return res.json(); }).then(function(data) {
+    btn.disabled = false;
+    btn.innerHTML = '&#x2709; Email Reports to Customer';
+    if (data.id) {
+      showToast('✅', custEmail ? 'Reports emailed to customer + you!' : 'Reports emailed to you!');
+    } else {
+      showToast('⚠️', 'Email error: ' + (data.message || 'Unknown error'));
+    }
+  }).catch(function(e) {
+    btn.disabled = false;
+    btn.innerHTML = '&#x2709; Email Reports to Customer';
+    showToast('⚠️', 'Email failed — check connection');
+  });
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
 // CUSTOMER MANAGEMENT
 // ══════════════════════════════════════════════════════════════════════════════
 var selectedCustomerId = null;
@@ -1116,13 +1382,21 @@ var custSearchTimer = null;
 function onCustSearch(val) {
   clearTimeout(custSearchTimer);
   var dd = document.getElementById('custDropdown');
-  if (!val || val.length < 2) { dd.style.display = 'none'; return; }
+  val = (val || '').trim();
+  if (!val || val.length < 1) { dd.style.display = 'none'; return; }
   custSearchTimer = setTimeout(function() {
-    supaFetch('GET', 'rfp_customers?or=(name.ilike.*' + encodeURIComponent(val) + '*,address.ilike.*' + encodeURIComponent(val) + '*)&order=name.asc&limit=10')
-      .then(function(results) { renderCustDropdown(results || []); })
-      .catch(function() { dd.style.display = 'none'; });
-  }, 300);
+    supaFetch('GET', 'rfp_customers?or=(name.ilike.' + encodeURIComponent('%' + val + '%') + ',address.ilike.' + encodeURIComponent('%' + val + '%') + ')&order=name.asc&limit=10')
+      .then(function(results) {
+        renderCustDropdown(results || []);
+      })
+      .catch(function(e) {
+        dd.innerHTML = '<div class="cust-option" style="color:var(--fail)">Error: ' + (e.message||'unknown') + '</div>';
+        dd.style.display = 'block';
+      });
+  }, 100);
 }
+
+function positionDropdown() {}
 
 function renderCustDropdown(customers) {
   var dd = document.getElementById('custDropdown');
@@ -1264,8 +1538,10 @@ function saveCustomer() {
 // Close dropdown on outside click
 document.addEventListener('click', function(e) {
   var dd = document.getElementById('custDropdown');
-  var wrap = document.getElementById('custPickerCard');
-  if (dd && wrap && !wrap.contains(e.target)) dd.style.display = 'none';
+  var input = document.getElementById('custSearchInput');
+  if (dd && input && !input.contains(e.target) && !dd.contains(e.target)) {
+    dd.style.display = 'none';
+  }
 });
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -1347,6 +1623,7 @@ function collectFormData() {
   toggleFields.forEach(function(f) { data['tog_'+f] = getToggle(f); });
   data.techSig = document.getElementById('techSigCanvas').toDataURL();
   data.custSig = document.getElementById('custSigCanvas').toDataURL();
+  data.photos  = jobPhotos;
   return data;
 }
 
@@ -1419,6 +1696,7 @@ function restoreFormData(data) {
     img2.onload = function() { cc.getContext('2d').drawImage(img2,0,0); document.getElementById('custSigWrap').classList.add('sig-has-content'); };
     img2.src = data.custSig;
   }
+  restorePhotos(data.photos);
 }
 
 // ── Save draft ────────────────────────────────────────────────────────────────
@@ -1716,6 +1994,7 @@ function newJob() {
   document.querySelectorAll('.toggle-btn').forEach(function(b) { b.className = 'toggle-btn'; });
   clearSig('techSigCanvas','techSigWrap');
   clearSig('custSigCanvas','custSigWrap');
+  clearAllPhotos();
   document.getElementById('deviceBody').innerHTML = '';
   rowCount = 0;
   addDeviceRow(); addDeviceRow(); addDeviceRow();
@@ -1768,6 +2047,9 @@ document.addEventListener('DOMContentLoaded', function() {
   });
   document.getElementById('custModal').addEventListener('click', function(e) {
     if (e.target === this) closeCustModal();
+  });
+  document.getElementById('photoLightbox').addEventListener('click', function(e) {
+    if (e.target === this) closeLightbox();
   });
   document.getElementById('reportFilename').addEventListener('keydown', function(e) {
     if (e.key === 'Enter') confirmAndDownload();
