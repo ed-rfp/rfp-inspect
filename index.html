@@ -634,6 +634,18 @@
 <div id="custModal">
   <div class="cust-modal-box">
     <h3 id="custModalTitle">New Customer</h3>
+    <div class="cust-modal-section">Account Type</div>
+    <div class="form-grid cols-2">
+      <div class="field">
+        <label>Account Type <span style="color:var(--fail)">*</span></label>
+        <div class="toggle-group" id="cm_accountTypeGroup">
+          <button class="toggle-btn" onclick="setCustToggle(this,'local')" data-val="local">&#x1F3E0; Local</button>
+          <button class="toggle-btn" onclick="setCustToggle(this,'national')" data-val="national">&#x1F3E2; National</button>
+        </div>
+        <input type="hidden" id="cm_accountType" value="">
+        <small style="color:var(--silver);font-size:0.72rem">National accounts will not receive inspection reminders</small>
+      </div>
+    </div>
     <div class="cust-modal-section">Basic Info</div>
     <div class="form-grid cols-2">
       <div class="field full"><label>Customer / Company Name *</label><input type="text" id="cm_name" placeholder="e.g. Lakeside Properties LLC"></div>
@@ -1370,6 +1382,20 @@ function sendReportEmail() {
   });
 }
 
+function setCustToggle(btn, val) {
+  var group = btn.closest('.toggle-group');
+  group.querySelectorAll('.toggle-btn').forEach(function(b) { b.className = 'toggle-btn'; });
+  btn.classList.add(val === 'local' ? 'selected-yes' : 'selected-no');
+  document.getElementById('cm_accountType').value = val;
+}
+
+function clearCustToggle() {
+  var group = document.getElementById('cm_accountTypeGroup');
+  if (group) group.querySelectorAll('.toggle-btn').forEach(function(b) { b.className = 'toggle-btn'; });
+  var inp = document.getElementById('cm_accountType');
+  if (inp) inp.value = '';
+}
+
 // ══════════════════════════════════════════════════════════════════════════════
 // CUSTOMER MANAGEMENT
 // ══════════════════════════════════════════════════════════════════════════════
@@ -1459,6 +1485,7 @@ function openCustModal(id) {
   ['cm_spkSysType','cm_hydrantType'].forEach(function(f) {
     var el = document.getElementById(f); if (el) el.value = '';
   });
+  clearCustToggle();
   document.getElementById('custModal').dataset.editId = id || '';
   document.getElementById('custModalTitle').textContent = id ? 'Edit Customer' : 'New Customer';
   if (id) {
@@ -1477,6 +1504,11 @@ function openCustModal(id) {
       Object.keys(map).forEach(function(k) {
         var el = document.getElementById(k); if (el && map[k]) el.value = map[k];
       });
+      // Restore account type toggle
+      if (c.account_type) {
+        var btn = document.querySelector('#cm_accountTypeGroup [data-val="' + c.account_type + '"]');
+        if (btn) setCustToggle(btn, c.account_type);
+      }
     });
   }
   document.getElementById('custModal').classList.add('open');
@@ -1489,8 +1521,11 @@ function closeCustModal() {
 function saveCustomer() {
   var name = document.getElementById('cm_name').value.trim();
   if (!name) { alert('Customer name is required.'); return; }
+  var accountType = document.getElementById('cm_accountType').value;
+  if (!accountType) { alert('Please select Local or National account type.'); return; }
   var payload = {
     name: name,
+    account_type:  accountType,
     address:       document.getElementById('cm_address').value.trim(),
     city:          document.getElementById('cm_city').value.trim(),
     state:         document.getElementById('cm_state').value.trim(),
