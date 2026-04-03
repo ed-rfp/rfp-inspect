@@ -892,6 +892,11 @@ function reportCSS() {
     '@page{margin:16mm 14mm;size:letter;}' +
     '*{box-sizing:border-box;margin:0;padding:0;}' +
     'body{font-family:Arial,sans-serif;font-size:10px;color:#1a1a1a;}' +
+    '.print-bar{background:#1a1a1a;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}' +
+    '.print-bar span{color:#aaa;font-size:11px;font-family:Arial,sans-serif;}' +
+    '.print-btn{background:#c0202a;color:white;border:none;border-radius:6px;padding:10px 22px;font-size:13px;font-weight:700;cursor:pointer;font-family:Arial,sans-serif;letter-spacing:0.5px;}' +
+    '.print-btn:active{background:#8b0000;}' +
+    '@media print{.print-bar{display:none;}}' +
     '.rh{display:flex;align-items:center;gap:14px;border-bottom:3px solid #c0202a;padding-bottom:10px;margin-bottom:14px;}' +
     '.rh img{width:56px;height:56px;object-fit:contain;flex-shrink:0;}' +
     '.rh h1{font-size:15px;font-weight:900;text-transform:uppercase;letter-spacing:1px;}' +
@@ -934,6 +939,7 @@ function reportCSS() {
     '.sb2 .sm{padding:6px 10px;display:flex;gap:16px;background:#f9fafb;border-top:1px solid #eee;}' +
     '.sb2 .sm .fl{flex:1;}' +
     '.rf{margin-top:14px;text-align:center;font-size:8px;color:#aaa;border-top:1px solid #eee;padding-top:8px;}' +
+    '.wrap{padding:16px;}' +
     '@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}' +
     '</style>';
 }
@@ -979,7 +985,7 @@ function reportSignatures(d) {
 }
 
 function reportFooter() {
-  return '<div class="rf">Region Fire Protection &nbsp;&middot;&nbsp; ' + reportId + ' &nbsp;&middot;&nbsp; Generated ' + new Date().toLocaleString() + '</div>';
+  return '<div class="rf">Region Fire Protection &nbsp;&middot;&nbsp; ' + reportId + ' &nbsp;&middot;&nbsp; Generated ' + new Date().toLocaleString() + '</div></div>';
 }
 
 // ── FIRE ALARM REPORT HTML ────────────────────────────────────────────────────
@@ -1011,7 +1017,7 @@ function buildAlarmReport() {
     deviceRowsHtml += '<tr><td>' + devNum + '</td><td>' + devType + '</td><td>' + devLoc + '</td><td>' + devLoop + '</td><td>' + devMake + '</td><td>' + devListS + '</td><td>' + devActS + '</td><td style="font-weight:700;color:' + pfColor + '">' + (devPF||'--') + '</td><td>' + devNotes + '</td></tr>';
   });
 
-  return '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Fire Alarm Report - ' + reportId + '</title>' + reportCSS() + '</head><body>' +
+  return '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Fire Alarm Report - ' + reportId + '</title>' + reportCSS() + '</head><body><div class="print-bar"><span>Region Fire Protection</span><button class="print-btn" onclick="window.print()">Save as PDF</button></div><div class="wrap">' +
     reportHeader(d, 'Fire Alarm Inspection') +
     '<div class="sec"><div class="sh">Panel &amp; System Info</div><div class="sb">' +
     '<div class="g g3">' +
@@ -1054,7 +1060,7 @@ function buildSprinklerReport() {
   function tog(f) { return getToggle(f); }
   function togCls(f) { var v=tog(f); return v==='Yes'?'yes':v==='No'?'no':'na'; }
 
-  return '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Sprinkler Report - ' + reportId + '</title>' + reportCSS() + '</head><body>' +
+  return '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Sprinkler Report - ' + reportId + '</title>' + reportCSS() + '</head><body><div class="print-bar"><span>Region Fire Protection</span><button class="print-btn" onclick="window.print()">Save as PDF</button></div><div class="wrap">' +
     reportHeader(d, 'Sprinkler Inspection') +
     '<div class="sec"><div class="sh">Sprinkler System</div><div class="sb">' +
     '<div class="g g4" style="margin-bottom:10px">' +
@@ -1104,7 +1110,7 @@ function buildHydrantReport() {
   function tog(f) { return getToggle(f); }
   function togCls(f) { var v=tog(f); return v==='Yes'?'yes':v==='No'?'no':'na'; }
 
-  return '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Hydrant Report - ' + reportId + '</title>' + reportCSS() + '</head><body>' +
+  return '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Hydrant Report - ' + reportId + '</title>' + reportCSS() + '</head><body><div class="print-bar"><span>Region Fire Protection</span><button class="print-btn" onclick="window.print()">Save as PDF</button></div><div class="wrap">' +
     reportHeader(d, 'Fire Hydrant Inspection') +
     '<div class="sec"><div class="sh">Hydrant Information</div><div class="sb">' +
     '<div class="g g3" style="margin-bottom:10px">' +
