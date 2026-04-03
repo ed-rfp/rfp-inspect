@@ -334,7 +334,6 @@
     <div class="card-body">
       <div class="form-grid cols-2">
         <div class="field"><label>Monitoring Company Notified?</label><div class="toggle-group" data-field="monitorNotified"><button class="toggle-btn" onclick="setToggle(this,'yes')">&#x2714; Yes</button><button class="toggle-btn" onclick="setToggle(this,'no')">&#x2716; No</button><button class="toggle-btn" onclick="setToggle(this,'na')">&mdash; N/A</button></div></div>
-        <div class="field"><label>Fire Dept. Notified?</label><div class="toggle-group" data-field="fdNotified"><button class="toggle-btn" onclick="setToggle(this,'yes')">&#x2714; Yes</button><button class="toggle-btn" onclick="setToggle(this,'no')">&#x2716; No</button><button class="toggle-btn" onclick="setToggle(this,'na')">&mdash; N/A</button></div></div>
         <div class="field"><label>System in Normal Condition Before Test?</label><div class="toggle-group" data-field="normalBefore"><button class="toggle-btn" onclick="setToggle(this,'yes')">&#x2714; Yes</button><button class="toggle-btn" onclick="setToggle(this,'no')">&#x2716; No</button></div></div>
         <div class="field"><label>System Restored After Test?</label><div class="toggle-group" data-field="normalAfter"><button class="toggle-btn" onclick="setToggle(this,'yes')">&#x2714; Yes</button><button class="toggle-btn" onclick="setToggle(this,'no')">&#x2716; No</button></div></div>
       </div>
@@ -352,7 +351,7 @@
         <div class="field"><label>Panel Manufacturer</label><input type="text" id="panelMfg" placeholder="e.g. Simplex, Notifier"></div>
         <div class="field"><label>Panel Model</label><input type="text" id="panelModel" placeholder="Model #"></div>
         <div class="field"><label>Panel Serial #</label><input type="text" id="panelSerial" placeholder="Serial #"></div>
-        <div class="field"><label>Software / Firmware Version</label><input type="text" id="firmware" placeholder="Version"></div>
+        <div class="field"><label>Panel Location</label><input type="text" id="firmware" placeholder="e.g. Main lobby, Room 101"></div>
         <div class="field"><label>Number of Zones / Loops</label><input type="text" id="numZones" placeholder="e.g. 4 Zones"></div>
         <div class="field"><label>Last Inspection Date</label><input type="date" id="lastInsp"></div>
       </div>
@@ -447,7 +446,6 @@
       <div class="form-grid">
         <div class="field"><label>Trip Time</label><input type="text" id="tripTime" placeholder="MM:SS"></div>
         <div class="field"><label>Flow Time to Inspector's Test</label><input type="text" id="flowTime" placeholder="MM:SS"></div>
-        <div class="field"><label>Water Flow Rate (if measured)</label><input type="text" id="flowRate" placeholder="GPM"></div>
         <div class="field"><label>Inspector's Test Valve Location</label><input type="text" id="testValveLoc" placeholder="e.g. NE corner, basement"></div>
       </div>
     </div>
@@ -652,7 +650,7 @@
       <div class="field"><label>Panel Manufacturer</label><input type="text" id="cm_panelMfg" placeholder="e.g. Simplex, Notifier"></div>
       <div class="field"><label>Panel Model</label><input type="text" id="cm_panelModel" placeholder="Model #"></div>
       <div class="field"><label>Panel Serial #</label><input type="text" id="cm_panelSerial" placeholder="Serial #"></div>
-      <div class="field"><label>Firmware Version</label><input type="text" id="cm_firmware" placeholder="Version"></div>
+      <div class="field"><label>Panel Location</label><input type="text" id="cm_firmware" placeholder="e.g. Main lobby, Room 101"></div>
       <div class="field"><label>Number of Zones / Loops</label><input type="text" id="cm_numZones" placeholder="e.g. 4 Zones"></div>
     </div>
     <div class="cust-modal-section">Sprinkler System Defaults</div>
@@ -1008,7 +1006,7 @@ function buildAlarmReport() {
     '<div class="fl"><label>Panel Manufacturer</label><span>' + panelMfg + '</span></div>' +
     '<div class="fl"><label>Panel Model</label><span>' + panelModel + '</span></div>' +
     '<div class="fl"><label>Panel Serial #</label><span>' + panelSerial + '</span></div>' +
-    '<div class="fl"><label>Firmware Version</label><span>' + firmware + '</span></div>' +
+    '<div class="fl"><label>Panel Location</label><span>' + firmware + '</span></div>' +
     '<div class="fl"><label>Zones / Loops</label><span>' + numZones + '</span></div>' +
     '</div></div></div>' +
     '<div class="sec"><div class="sh">Device Test Log</div><div class="sb">' +
@@ -1037,7 +1035,7 @@ function buildSprinklerReport() {
   var airP        = document.getElementById('airPressure').value || '';
   var tripTime    = document.getElementById('tripTime').value || '';
   var flowTime    = document.getElementById('flowTime').value || '';
-  var flowRate    = document.getElementById('flowRate').value || '';
+  var flowRate    = '';
   var testValveLoc= document.getElementById('testValveLoc').value || '';
   var spkNotes    = document.getElementById('spkNotes').value || '';
 
@@ -1057,7 +1055,6 @@ function buildSprinklerReport() {
     '<div class="fl"><label>Air Pressure</label><span>' + airP + (airP?' PSI':'') + '</span></div>' +
     '<div class="fl"><label>Trip Time</label><span>' + tripTime + '</span></div>' +
     '<div class="fl"><label>Flow Time</label><span>' + flowTime + '</span></div>' +
-    '<div class="fl"><label>Flow Rate</label><span>' + flowRate + (flowRate?' GPM':'') + '</span></div>' +
     '<div class="fl"><label>Test Valve Location</label><span>' + testValveLoc + '</span></div>' +
     '</div>' +
     '<div class="cl">' +
@@ -1606,7 +1603,7 @@ function collectFormData() {
     'custName','custPhone','custEmail','onSiteContact','techName',
     'panelMfg','panelModel','panelSerial','firmware','numZones','lastInsp',
     'alarmNotes','spkSysType','spkInspType','spkMake','spkYear',
-    'staticPressure','residualPressure','airPressure','tripTime','flowTime','flowRate','testValveLoc','spkNotes',
+    'staticPressure','residualPressure','airPressure','tripTime','flowTime','testValveLoc','spkNotes',
     'hydrantId','hydrantLoc','hydrantMfg','hydrantYear','hydrantType','hydrantInspType',
     'hydStaticP','hydResidualP','hydPitotP','hydFlowRate','hydNotes',
     'summaryNotes','techPrint','custPrint','custTitle','dateSigned'];
@@ -1615,7 +1612,7 @@ function collectFormData() {
     var el = document.getElementById(id);
     if (el) data[id] = el.value;
   });
-  var toggleFields = ['monitorNotified','fdNotified','normalBefore','normalAfter',
+  var toggleFields = ['monitorNotified','normalBefore','normalAfter',
     'valvesOpen','lowPointsDrained','alarmSounds','waterflowAlarm','tamperSwitches',
     'dryValve','gaugesGood','noObstructions','spareHeads','spkRestored',
     'hydAccessible','hydPaint','hydCaps','hydThreads','hydValveOp','hydDrainage','hydNoLeaks','hydRestored',
@@ -1634,7 +1631,7 @@ function restoreFormData(data) {
     'custName','custPhone','custEmail','onSiteContact','techName',
     'panelMfg','panelModel','panelSerial','firmware','numZones','lastInsp',
     'alarmNotes','spkSysType','spkInspType','spkMake','spkYear',
-    'staticPressure','residualPressure','airPressure','tripTime','flowTime','flowRate','testValveLoc','spkNotes',
+    'staticPressure','residualPressure','airPressure','tripTime','flowTime','testValveLoc','spkNotes',
     'hydrantId','hydrantLoc','hydrantMfg','hydrantYear','hydrantType','hydrantInspType',
     'hydStaticP','hydResidualP','hydPitotP','hydFlowRate','hydNotes',
     'summaryNotes','techPrint','custPrint','custTitle','dateSigned'];
@@ -1642,7 +1639,7 @@ function restoreFormData(data) {
     var el = document.getElementById(id);
     if (el && data[id] !== undefined) el.value = data[id];
   });
-  var toggleFields = ['monitorNotified','fdNotified','normalBefore','normalAfter',
+  var toggleFields = ['monitorNotified','normalBefore','normalAfter',
     'valvesOpen','lowPointsDrained','alarmSounds','waterflowAlarm','tamperSwitches',
     'dryValve','gaugesGood','noObstructions','spareHeads','spkRestored',
     'hydAccessible','hydPaint','hydCaps','hydThreads','hydValveOp','hydDrainage','hydNoLeaks','hydRestored',
