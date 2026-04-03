@@ -1156,13 +1156,17 @@ function confirmAndDownload() {
   closeFilenameModal();
   var html = currentReportType === 'alarm' ? buildAlarmReport() :
              currentReportType === 'sprinkler' ? buildSprinklerReport() : buildHydrantReport();
-  var blob = new Blob([html], { type: 'text/html' });
+  var printHtml = html.replace('</body>', '<script>window.onload=function(){window.print();};<\/script></body>');
+  var blob = new Blob([printHtml], { type: 'text/html' });
   var url = URL.createObjectURL(blob);
-  var a = document.createElement('a');
-  a.href = url; a.download = filename + '.html';
-  document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  setTimeout(function() { URL.revokeObjectURL(url); }, 5000);
-  showToast('✅', 'Report saved!');
+  var win = window.open(url, '_blank');
+  if (!win) {
+    var a = document.createElement('a');
+    a.href = url; a.download = filename + '.html';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  }
+  setTimeout(function() { URL.revokeObjectURL(url); }, 10000);
+  showToast('📄', 'Tap Share → Save as PDF');
 }
 
 function showToast(icon, msg) {
