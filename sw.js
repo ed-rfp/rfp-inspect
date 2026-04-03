@@ -1,4 +1,4 @@
-var CACHE = 'rfp-v1';
+var CACHE = 'rfp-v3';
 var ASSETS = [
   '/',
   '/index.html',
@@ -24,13 +24,13 @@ self.addEventListener('activate', function(e) {
   self.clients.claim();
 });
 self.addEventListener('fetch', function(e) {
-  // Don't intercept Supabase calls - those need live network
+  // Don't intercept Supabase or Resend calls
   if (e.request.url.includes('supabase.co')) return;
+  if (e.request.url.includes('resend.com')) return;
   e.respondWith(
     caches.match(e.request).then(function(cached) {
       if (cached) return cached;
       return fetch(e.request).then(function(response) {
-        // Cache successful GET responses
         if (e.request.method === 'GET' && response.status === 200) {
           var copy = response.clone();
           caches.open(CACHE).then(function(cache) {
@@ -39,7 +39,6 @@ self.addEventListener('fetch', function(e) {
         }
         return response;
       }).catch(function() {
-        // Offline fallback - return cached index
         if (e.request.mode === 'navigate') {
           return caches.match('/index.html');
         }
