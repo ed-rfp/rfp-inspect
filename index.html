@@ -1149,9 +1149,11 @@ function openFilenameModal(type) {
   currentReportType = type;
   var typeLabels = { alarm: 'Fire Alarm', sprinkler: 'Sprinkler', hydrant: 'Fire Hydrant' };
   document.getElementById('modalDesc').textContent = 'Enter a name for the ' + typeLabels[type] + ' report.';
-  var facility = document.getElementById('facilityName').value || 'Inspection';
-  var suffix = { alarm: 'FireAlarm', sprinkler: 'Sprinkler', hydrant: 'Hydrant' }[type];
-  var suggested = (reportId + '-' + suffix + '-' + facility).replace(/[^a-zA-Z0-9\-_]/g, '-').replace(/-+/g, '-');
+  var custName = document.getElementById('custName').value || document.getElementById('facilityName').value || 'Inspection';
+  var inspDate = document.getElementById('inspDate').value;
+  var dateStr = inspDate ? new Date(inspDate + 'T12:00:00').toLocaleDateString('en-US', {month:'numeric',day:'numeric',year:'2-digit'}).replace(/\//g,'-') : '';
+  var suffix = { alarm: 'Fire-Alarm', sprinkler: 'Sprinkler', hydrant: 'Hydrant' }[type];
+  var suggested = (custName + (dateStr ? '-' + dateStr : '') + '-' + suffix).replace(/[^a-zA-Z0-9\-_]/g, '-').replace(/-+/g, '-');
   document.getElementById('reportFilename').value = suggested;
   document.getElementById('filenameModal').classList.add('open');
   setTimeout(function() { document.getElementById('reportFilename').select(); }, 100);
