@@ -1,4 +1,4 @@
-var CACHE = 'rfp-v8';
+var CACHE = 'rfp-v9';
 var ASSETS = [
   '/',
   '/index.html',
